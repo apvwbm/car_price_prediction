@@ -65,9 +65,9 @@ async def info():
         "ejemplo_get": "/predict?Brand=Toyota&Model=Corolla&Year=2015&Engine_Size=1.8&Fuel_Type=Petrol&Transmission=Manual&Mileage=50000&Doors=5&Owner_Count=2"
     }
     
-@app.get("/secret")
-async def secret():
-    return {"mensaje": "Este endpoint ha sido activado tras el redespliegue"}
+# @app.get("/secret")
+# async def secret():
+#     return {"mensaje": "Este endpoint ha sido activado tras el redespliegue"}
     
 @app.get("/predict")
 async def predict_get(
