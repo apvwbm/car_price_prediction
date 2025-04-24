@@ -14,7 +14,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 app = FastAPI(title="API de Predicción de Precios de Coches")
 
 # Cargar el modelo
-model = load_model("./models/modelo_coche.pkl")
+current_dir = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(current_dir, "..", "models", "modelo_coche.pkl")
+model = load_model(model_path)
 
 # Configurar Jinja2 para plantillas HTML
 templates = Jinja2Templates(directory="templates")

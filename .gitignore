@@ -3,6 +3,7 @@ venv/
 
 # Ignorar todo el contenido dentro de models/
 models/*
+!models/modelo_coche.pkl
 
 # Pero no ignorar la carpeta models misma ni este archivo especial
 !models/.gitkeep
