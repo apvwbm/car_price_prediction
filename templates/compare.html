@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Comparación de Coches</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 40px;
+            justify-content: space-between;
+        }
+
+        .form-container {
+            background-color: #ffffff;
+            flex: 1;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2, h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+
+        .buttons input[type="submit"],
+        .buttons a {
+            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            border-radius: 6px;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .buttons input[type="submit"] {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .buttons input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        .buttons a {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .buttons a:hover {
+            background-color: #5a6268;
+        }
+
+        .resultado {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .resultado strong {
+            color: #28a745;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Comparar Dos Coches</h2>
+        <form method="post">
+            <div class="form-row">
+                {% for i in [1, 2] %}
+                <div class="form-container">
+                    <h3>Coche {{ i }}</h3>
+
+                    {% set labels = {
+                        'Brand': 'Marca',
+                        'Model': 'Modelo',
+                        'Year': 'Año',
+                        'Engine_Size': 'Tamaño del motor (L)',
+                        'Fuel_Type': 'Tipo de combustible',
+                        'Transmission': 'Transmisión',
+                        'Mileage': 'Kilometraje',
+                        'Doors': 'Número de puertas',
+                        'Owner_Count': 'Nº de propietarios anteriores'
+                    } %}
+
+                    {% for field in labels %}
+                        {% set value = (defaults1 if i == 1 else defaults2)[field] %}
+                        <div class="form-group">
+                            <label for="{{ field }}{{ i }}">{{ labels[field] }}:</label>
+
+                            {% if field in ['Fuel_Type', 'Transmission'] %}
+                            <select name="{{ field }}{{ i }}">
+                                {% if field == 'Fuel_Type' %}
+                                    <option value="Petrol" {% if value == 'Petrol' %}selected{% endif %}>Gasolina</option>
+                                    <option value="Diesel" {% if value == 'Diesel' %}selected{% endif %}>Diésel</option>
+                                    <option value="Electric" {% if value == 'Electric' %}selected{% endif %}>Eléctrico</option>
+                                    <option value="Hybrid" {% if value == 'Hybrid' %}selected{% endif %}>Híbrido</option>
+                                {% else %}
+                                    <option value="Manual" {% if value == 'Manual' %}selected{% endif %}>Manual</option>
+                                    <option value="Automatic" {% if value == 'Automatic' %}selected{% endif %}>Automática</option>
+                                {% endif %}
+                            </select>
+                            {% else %}
+                            <input type="{{ 'number' if field in ['Year', 'Engine_Size', 'Mileage', 'Doors', 'Owner_Count'] else 'text' }}"
+                                   name="{{ field }}{{ i }}"
+                                   value="{{ value }}" required>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="buttons">
+                <a href="/">Volver</a>
+                <input type="submit" value="Comparar">
+            </div>
+        </form>
+
+        {% if resultado %}
+        <div class="resultado">
+            {% if resultado.error %}
+                {{ resultado.error }}
+            {% else %}
+                <p>Precio Coche 1: <strong>{{ resultado.price1 }} €</strong></p>
+                <p>Precio Coche 2: <strong>{{ resultado.price2 }} €</strong></p>
+                <p><strong>{{ resultado.mas_caro }}</strong> es más caro por {{ resultado.diferencia }} €</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+</html>

@@ -3,12 +3,12 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 import uvicorn
-from typing import Optional
+import pandas as pd
+import os
+import sys
 
 from src.model_utils import load_model, predict_price
 
-import sys
-import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 app = FastAPI(title="API de Predicción de Precios de Coches")
@@ -18,10 +18,10 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(current_dir, "..", "models", "modelo_coche.pkl")
 model = load_model(model_path)
 
-# Configurar Jinja2 para plantillas HTML
+# Configurar Jinja2
 templates = Jinja2Templates(directory="templates")
 
-# Clase para los datos del coche
+# Modelo de entrada
 class CarFeatures(BaseModel):
     Brand: str
     Model: str
@@ -33,118 +33,136 @@ class CarFeatures(BaseModel):
     Doors: int
     Owner_Count: int
 
-# Endpoint raíz: muestra la plantilla con los valores por defecto
+# Para comparación (si lo activas más adelante)
+class CompareRequest(BaseModel):
+    car1: CarFeatures
+    car2: CarFeatures
+
 @app.get("/", response_class=HTMLResponse)
-async def root(request: Request):
-    default_values = {
-        "Brand": "Toyota",
-        "Model": "Corolla",
-        "Year": 2015,
-        "Engine_Size": 1.8,
-        "Fuel_Type": "Petrol",
-        "Transmission": "Manual",
-        "Mileage": 50000,
-        "Doors": 5,
-        "Owner_Count": 2
+async def landing(request: Request):
+    return templates.TemplateResponse("landing.html", {"request": request})
+
+@app.api_route("/predict", methods=["GET", "POST"], response_class=HTMLResponse)
+async def predict_view(
+    request: Request,
+    Brand: str = Form(None),
+    Model: str = Form(None),
+    Year: int = Form(None),
+    Engine_Size: float = Form(None),
+    Fuel_Type: str = Form(None),
+    Transmission: str = Form(None),
+    Mileage: int = Form(None),
+    Doors: int = Form(None),
+    Owner_Count: int = Form(None),
+):
+    defaults = {
+        "Brand": Brand or "Toyota",
+        "Model": Model or "Corolla",
+        "Year": Year or 2015,
+        "Engine_Size": Engine_Size or 1.8,
+        "Fuel_Type": Fuel_Type or "Petrol",
+        "Transmission": Transmission or "Manual",
+        "Mileage": Mileage or 50000,
+        "Doors": Doors or 5,
+        "Owner_Count": Owner_Count or 2
     }
-    return templates.TemplateResponse("index.html", {
+
+    prediction_text = None
+    if request.method == "POST":
+        try:
+            data = {
+                "Brand": Brand,
+                "Model": Model,
+                "Year": Year,
+                "Engine_Size": Engine_Size,
+                "Fuel_Type": Fuel_Type,
+                "Transmission": Transmission,
+                "Mileage": Mileage,
+                "Doors": Doors,
+                "Owner_Count": Owner_Count
+            }
+            price = round(predict_price(model, data), 2)
+            prediction_text = f"El precio estimado del coche es de {price} €"
+        except Exception as e:
+            prediction_text = f"⚠️ Error: {e}"
+
+    return templates.TemplateResponse("predict.html", {
         "request": request,
-        "defaults": default_values
+        "defaults": defaults,
+        "prediction_text": prediction_text
     })
-    
-@app.get("/info")
-async def info():
-    return {
-        "mensaje": "API de Predicción de Precios de Coches",
-        "endpoints": {
-            "/": "Landing page con formulario HTML",
-            "/predict (POST)": "Recibe un formulario o JSON con los datos del coche y devuelve el precio estimado",
-            "/predict (GET)": "Recibe parámetros por URL y devuelve la predicción (ideal para usar con requests.get)",
-            "/info": "Información sobre los endpoints disponibles"
-        },
-        "ejemplo_get": "/predict?Brand=Toyota&Model=Corolla&Year=2015&Engine_Size=1.8&Fuel_Type=Petrol&Transmission=Manual&Mileage=50000&Doors=5&Owner_Count=2"
-    }
-    
-# @app.get("/secret")
-# async def secret():
-#     return {"mensaje": "Este endpoint ha sido activado tras el redespliegue"}
-    
-@app.get("/predict")
-async def predict_get(
-    Brand: str,
-    Model: str,
-    Year: int,
-    Engine_Size: float,
-    Fuel_Type: str,
-    Transmission: str,
-    Mileage: int,
-    Doors: int,
-    Owner_Count: int
-):
-    if model is None:
-        raise HTTPException(status_code=500, detail="Modelo no cargado correctamente")
-
-    try:
-        car_data = {
-            "Brand": Brand,
-            "Model": Model,
-            "Year": Year,
-            "Engine_Size": Engine_Size,
-            "Fuel_Type": Fuel_Type,
-            "Transmission": Transmission,
-            "Mileage": Mileage,
-            "Doors": Doors,
-            "Owner_Count": Owner_Count
-        }
-        price = round(predict_price(model, car_data), 2)
-        return {
-            "input": car_data,
-            "precio_predicho": price,
-            "mensaje": f"El precio estimado del coche es: {price} euros"
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error en la predicción: {e}")
 
 
-# Endpoint para predecir el precio
-@app.post("/predict")
-async def predict(
-    Brand: str = Form(...),
-    Model: str = Form(...),
-    Year: int = Form(...),
-    Engine_Size: float = Form(...),
-    Fuel_Type: str = Form(...),
-    Transmission: str = Form(...),
-    Mileage: int = Form(...),
-    Doors: int = Form(...),
-    Owner_Count: int = Form(...)
-):
-    if model is None:
-        raise HTTPException(status_code=500, detail="Modelo no cargado correctamente")
+# @app.api_route("/compare", methods=["GET", "POST"], response_class=HTMLResponse)
+# async def compare_view(
+#     request: Request,
+#     Brand1: str = Form(None),
+#     Model1: str = Form(None),
+#     Year1: int = Form(None),
+#     Engine_Size1: float = Form(None),
+#     Fuel_Type1: str = Form(None),
+#     Transmission1: str = Form(None),
+#     Mileage1: int = Form(None),
+#     Doors1: int = Form(None),
+#     Owner_Count1: int = Form(None),
 
-    try:
-        car_data = {
-            "Brand": Brand,
-            "Model": Model,
-            "Year": Year,
-            "Engine_Size": Engine_Size,
-            "Fuel_Type": Fuel_Type,
-            "Transmission": Transmission,
-            "Mileage": Mileage,
-            "Doors": Doors,
-            "Owner_Count": Owner_Count
-        }
+#     Brand2: str = Form(None),
+#     Model2: str = Form(None),
+#     Year2: int = Form(None),
+#     Engine_Size2: float = Form(None),
+#     Fuel_Type2: str = Form(None),
+#     Transmission2: str = Form(None),
+#     Mileage2: int = Form(None),
+#     Doors2: int = Form(None),
+#     Owner_Count2: int = Form(None)
+# ):
+#     defaults1 = {
+#         "Brand": Brand1 or "Toyota",
+#         "Model": Model1 or "Corolla",
+#         "Year": Year1 or 2018,
+#         "Engine_Size": Engine_Size1 or 1.8,
+#         "Fuel_Type": Fuel_Type1 or "Hybrid",
+#         "Transmission": Transmission1 or "Automatic",
+#         "Mileage": Mileage1 or 40000,
+#         "Doors": Doors1 or 5,
+#         "Owner_Count": Owner_Count1 or 1
+#     }
 
-        price = round(predict_price(model, car_data), 2)
-        return {
-            "input": car_data,
-            "precio_predicho": price,
-            "mensaje": f"El precio estimado del coche es: {price} euros"
-        }
+#     defaults2 = {
+#         "Brand": Brand2 or "Ford",
+#         "Model": Model2 or "Focus",
+#         "Year": Year2 or 2016,
+#         "Engine_Size": Engine_Size2 or 1.5,
+#         "Fuel_Type": Fuel_Type2 or "Diesel",
+#         "Transmission": Transmission2 or "Manual",
+#         "Mileage": Mileage2 or 60000,
+#         "Doors": Doors2 or 5,
+#         "Owner_Count": Owner_Count2 or 2
+#     }
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error en la predicción: {e}")
+#     prediction_result = None
+#     if request.method == "POST":
+#         try:
+#             price1 = round(predict_price(model, defaults1), 2)
+#             price2 = round(predict_price(model, defaults2), 2)
+#             prediction_result = {
+#                 "car1": defaults1,
+#                 "price1": price1,
+#                 "car2": defaults2,
+#                 "price2": price2,
+#                 "mas_caro": "Coche 1" if price1 > price2 else "Coche 2",
+#                 "diferencia": round(abs(price1 - price2), 2)
+#             }
+#         except Exception as e:
+#             prediction_result = {"error": f"⚠️ Error: {e}"}
 
-# Iniciar el servidor si se ejecuta directamente
+#     return templates.TemplateResponse("compare.html", {
+#         "request": request,
+#         "defaults1": defaults1,
+#         "defaults2": defaults2,
+#         "resultado": prediction_result
+#     })
+
+# Ejecutar servidor si es run directo
 if __name__ == "__main__":
     uvicorn.run("src.main:app", host="0.0.0.0", port=8000, reload=True)

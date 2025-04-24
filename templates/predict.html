@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Predicción de un Coche</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            padding: 50px;
+        }
+
+        .form-container {
+            background-color: #ffffff;
+            max-width: 600px;
+            margin: auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .buttons input[type="submit"],
+        .buttons a {
+            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            border-radius: 6px;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .buttons input[type="submit"] {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .buttons input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        .buttons a {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .buttons a:hover {
+            background-color: #5a6268;
+        }
+
+        .result {
+            font-weight: bold;
+            margin-top: 20px;
+            text-align: center;
+            color: #28a745;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Predicción de Precio</h2>
+        <form method="post">
+            {% set labels = {
+                'Brand': 'Marca',
+                'Model': 'Modelo',
+                'Year': 'Año',
+                'Engine_Size': 'Tamaño del motor (L)',
+                'Fuel_Type': 'Tipo de combustible',
+                'Transmission': 'Transmisión',
+                'Mileage': 'Kilometraje',
+                'Doors': 'Número de puertas',
+                'Owner_Count': 'Nº de propietarios anteriores'
+            } %}
+
+            {% for field, value in defaults.items() %}
+                <div class="form-group">
+                    <label for="{{ field }}">{{ labels[field] }}:</label>
+                    {% if field in ['Fuel_Type', 'Transmission'] %}
+                        <select name="{{ field }}">
+                            {% if field == 'Fuel_Type' %}
+                                <option value="Petrol" {% if value == 'Petrol' %}selected{% endif %}>Gasolina</option>
+                                <option value="Diesel" {% if value == 'Diesel' %}selected{% endif %}>Diésel</option>
+                                <option value="Electric" {% if value == 'Electric' %}selected{% endif %}>Eléctrico</option>
+                                <option value="Hybrid" {% if value == 'Hybrid' %}selected{% endif %}>Híbrido</option>
+                            {% else %}
+                                <option value="Manual" {% if value == 'Manual' %}selected{% endif %}>Manual</option>
+                                <option value="Automatic" {% if value == 'Automatic' %}selected{% endif %}>Automática</option>
+                            {% endif %}
+                        </select>
+                    {% else %}
+                        <input type="{{ 'number' if value is number else 'text' }}" name="{{ field }}" value="{{ value }}" required>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <div class="buttons">
+                <a href="/">Volver</a>
+                <input type="submit" value="Predecir">
+            </div>            
+        </form>
+
+        {% if prediction_text %}
+        <div class="result">{{ prediction_text }}</div>
+        {% endif %}
+    </div>
+</body>
+</html>
