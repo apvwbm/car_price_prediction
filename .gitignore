@@ -1,0 +1,8 @@
+venv/
+**/__pycache__/
+
+# Ignorar todo el contenido dentro de models/
+models/*
+
+# Pero no ignorar la carpeta models misma ni este archivo especial
+!models/.gitkeep
