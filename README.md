@@ -7,7 +7,7 @@ API REST construida con **FastAPI** para estimar el precio de un coche según su
 ## 📁 Estructura del proyecto
 
 ```
-Team-Leviathan/
+car_price_prediction/
 ├── data/                     # Datos originales (CSV, etc.)
 │   └── car_price_dataset.csv
 │
