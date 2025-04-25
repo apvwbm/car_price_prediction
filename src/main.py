@@ -101,94 +101,94 @@ async def predict_json(car: CarFeatures):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-# @app.api_route("/compare", methods=["GET", "POST"], response_class=HTMLResponse)
-# async def compare_view(
-#     request: Request,
-#     Brand1: str = Form(None),
-#     Model1: str = Form(None),
-#     Year1: int = Form(None),
-#     Engine_Size1: float = Form(None),
-#     Fuel_Type1: str = Form(None),
-#     Transmission1: str = Form(None),
-#     Mileage1: int = Form(None),
-#     Doors1: int = Form(None),
-#     Owner_Count1: int = Form(None),
+@app.api_route("/compare", methods=["GET", "POST"], response_class=HTMLResponse)
+async def compare_view(
+    request: Request,
+    Brand1: str = Form(None),
+    Model1: str = Form(None),
+    Year1: int = Form(None),
+    Engine_Size1: float = Form(None),
+    Fuel_Type1: str = Form(None),
+    Transmission1: str = Form(None),
+    Mileage1: int = Form(None),
+    Doors1: int = Form(None),
+    Owner_Count1: int = Form(None),
 
-#     Brand2: str = Form(None),
-#     Model2: str = Form(None),
-#     Year2: int = Form(None),
-#     Engine_Size2: float = Form(None),
-#     Fuel_Type2: str = Form(None),
-#     Transmission2: str = Form(None),
-#     Mileage2: int = Form(None),
-#     Doors2: int = Form(None),
-#     Owner_Count2: int = Form(None)
-# ):
-#     defaults1 = {
-#         "Brand": Brand1 or "Toyota",
-#         "Model": Model1 or "Corolla",
-#         "Year": Year1 or 2018,
-#         "Engine_Size": Engine_Size1 or 1.8,
-#         "Fuel_Type": Fuel_Type1 or "Hybrid",
-#         "Transmission": Transmission1 or "Automatic",
-#         "Mileage": Mileage1 or 40000,
-#         "Doors": Doors1 or 5,
-#         "Owner_Count": Owner_Count1 or 1
-#     }
+    Brand2: str = Form(None),
+    Model2: str = Form(None),
+    Year2: int = Form(None),
+    Engine_Size2: float = Form(None),
+    Fuel_Type2: str = Form(None),
+    Transmission2: str = Form(None),
+    Mileage2: int = Form(None),
+    Doors2: int = Form(None),
+    Owner_Count2: int = Form(None)
+):
+    defaults1 = {
+        "Brand": Brand1 or "Toyota",
+        "Model": Model1 or "Corolla",
+        "Year": Year1 or 2018,
+        "Engine_Size": Engine_Size1 or 1.8,
+        "Fuel_Type": Fuel_Type1 or "Hybrid",
+        "Transmission": Transmission1 or "Automatic",
+        "Mileage": Mileage1 or 40000,
+        "Doors": Doors1 or 5,
+        "Owner_Count": Owner_Count1 or 1
+    }
 
-#     defaults2 = {
-#         "Brand": Brand2 or "Ford",
-#         "Model": Model2 or "Focus",
-#         "Year": Year2 or 2016,
-#         "Engine_Size": Engine_Size2 or 1.5,
-#         "Fuel_Type": Fuel_Type2 or "Diesel",
-#         "Transmission": Transmission2 or "Manual",
-#         "Mileage": Mileage2 or 60000,
-#         "Doors": Doors2 or 5,
-#         "Owner_Count": Owner_Count2 or 2
-#     }
+    defaults2 = {
+        "Brand": Brand2 or "Ford",
+        "Model": Model2 or "Focus",
+        "Year": Year2 or 2016,
+        "Engine_Size": Engine_Size2 or 1.5,
+        "Fuel_Type": Fuel_Type2 or "Diesel",
+        "Transmission": Transmission2 or "Manual",
+        "Mileage": Mileage2 or 60000,
+        "Doors": Doors2 or 5,
+        "Owner_Count": Owner_Count2 or 2
+    }
 
-#     prediction_result = None
-#     if request.method == "POST":
-#         try:
-#             price1 = round(predict_price(model, defaults1), 2)
-#             price2 = round(predict_price(model, defaults2), 2)
-#             prediction_result = {
-#                 "car1": defaults1,
-#                 "price1": price1,
-#                 "car2": defaults2,
-#                 "price2": price2,
-#                 "mas_caro": "Coche 1" if price1 > price2 else "Coche 2",
-#                 "diferencia": round(abs(price1 - price2), 2)
-#             }
-#         except Exception as e:
-#             prediction_result = {"error": f"⚠️ Error: {e}"}
+    prediction_result = None
+    if request.method == "POST":
+        try:
+            price1 = round(predict_price(model, defaults1), 2)
+            price2 = round(predict_price(model, defaults2), 2)
+            prediction_result = {
+                "car1": defaults1,
+                "price1": price1,
+                "car2": defaults2,
+                "price2": price2,
+                "mas_caro": "Coche 1" if price1 > price2 else "Coche 2",
+                "diferencia": round(abs(price1 - price2), 2)
+            }
+        except Exception as e:
+            prediction_result = {"error": f"⚠️ Error: {e}"}
 
-#     return templates.TemplateResponse("compare.html", {
-#         "request": request,
-#         "defaults1": defaults1,
-#         "defaults2": defaults2,
-#         "resultado": prediction_result
-#     })
+    return templates.TemplateResponse("compare.html", {
+        "request": request,
+        "defaults1": defaults1,
+        "defaults2": defaults2,
+        "resultado": prediction_result
+    })
 
-# @app.post("/compare_json")
-# async def compare_json(request: CompareRequest):
-#     try:
-#         data1 = request.car1.dict()
-#         data2 = request.car2.dict()
+@app.post("/compare_json")
+async def compare_json(request: CompareRequest):
+    try:
+        data1 = request.car1.dict()
+        data2 = request.car2.dict()
 
-#         price1 = round(predict_price(model, data1), 2)
-#         price2 = round(predict_price(model, data2), 2)
+        price1 = round(predict_price(model, data1), 2)
+        price2 = round(predict_price(model, data2), 2)
 
-#         return {
-#             "car1": {"features": data1, "price": price1},
-#             "car2": {"features": data2, "price": price2},
-#             "mas_caro": "car1" if price1 > price2 else "car2",
-#             "diferencia": round(abs(price1 - price2), 2),
-#             "currency": "EUR"
-#         }
-#     except Exception as e:
-#         raise HTTPException(status_code=400, detail=str(e))
+        return {
+            "car1": {"features": data1, "price": price1},
+            "car2": {"features": data2, "price": price2},
+            "mas_caro": "car1" if price1 > price2 else "car2",
+            "diferencia": round(abs(price1 - price2), 2),
+            "currency": "EUR"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # Ejecutar servidor si es run directo
